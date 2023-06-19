@@ -1,0 +1,109 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2709
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 // Include the necessary libraries\
+#include <AFMotor.h>\
+\
+// Define the pins for the ultrasonic sensor\
+const int trigPin = 2;\
+const int echoPin = 3;\
+\
+// Define the pins for the infrared sensor\
+const int lineSensorPin = A0;\
+\
+// Define the motor shield pins\
+AF_DCMotor motor1(1);  // Motor connected to M1\
+AF_DCMotor motor2(2);  // Motor connected to M2\
+\
+// Constants for distance threshold and motor speeds\
+const int distanceThreshold = 20;  // Distance threshold for obstacle detection (in cm)\
+const int motorSpeed = 200;       // Motor speed (0-255)\
+\
+void setup() \{\
+  // Initialize the serial communication\
+  Serial.begin(9600);\
+\
+  // Set the ultrasonic sensor pins\
+  pinMode(trigPin, OUTPUT);\
+  pinMode(echoPin, INPUT);\
+\
+  // Set the infrared sensor pin\
+  pinMode(lineSensorPin, INPUT);\
+\
+  // Set the motor shield\
+  motor1.setSpeed(motorSpeed);\
+  motor2.setSpeed(motorSpeed);\
+\}\
+\
+void loop() \{\
+  // Read the distance from the ultrasonic sensor\
+  int distance = getDistance();\
+\
+  // Check if there is an obstacle ahead\
+  if (distance <= distanceThreshold) \{\
+    // Stop the car if an obstacle is detected\
+    stopCar();\
+    delay(500);\
+    // Reverse the car for 1 second\
+    reverseCar();\
+    delay(1000);\
+    // Turn the car to the right for 1 second\
+    turnRight();\
+    delay(1000);\
+  \} else \{\
+    // Read the line sensor value\
+    int lineValue = analogRead(lineSensorPin);\
+\
+    // Check if the car should follow the line\
+    if (lineValue < 500) \{\
+      // Line is detected, move forward\
+      moveForward();\
+    \} else \{\
+      // Line is not detected, stop the car\
+      stopCar();\
+    \}\
+  \}\
+\}\
+\
+// Function to get the distance from the ultrasonic sensor\
+int getDistance() \{\
+  digitalWrite(trigPin, LOW);\
+  delayMicroseconds(2);\
+  digitalWrite(trigPin, HIGH);\
+  delayMicroseconds(10);\
+  digitalWrite(trigPin, LOW);\
+  \
+  long duration = pulseIn(echoPin, HIGH);\
+  int distance = duration * 0.034 / 2;\
+  \
+  return distance;\
+\}\
+\
+// Function to move the car forward\
+void moveForward() \{\
+  motor1.run(FORWARD);\
+  motor2.run(FORWARD);\
+\}\
+\
+// Function to stop the car\
+void stopCar() \{\
+  motor1.run(RELEASE);\
+  motor2.run(RELEASE);\
+\}\
+\
+// Function to reverse the car\
+void reverseCar() \{\
+  motor1.run(BACKWARD);\
+  motor2.run(BACKWARD);\
+\}\
+\
+// Function to turn the car to the right\
+void turnRight() \{\
+  motor1.run(FORWARD);\
+  motor2.run(BACKWARD);\
+\}\
+}
